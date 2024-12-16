@@ -37,4 +37,18 @@ class TaskRepository implements TaskRepositoryInterface
 
         return $tasks->get();
     }
+
+    public function findOne($id, $userId)
+    {
+        return Task::where('id', $id)
+            ->whereHas('users', function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            })->first();
+    }
+
+    public function update($task, array $data)
+    {
+        $task->update($data);
+        return $task;
+    }
 }

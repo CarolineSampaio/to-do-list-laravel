@@ -26,4 +26,13 @@ class TaskService
     {
         return $this->taskRepository->list($filters, $userId);
     }
+
+    public function updateTask($id, $userId, array $data)
+    {
+        $task = $this->taskRepository->findOne($id, $userId);
+        if (!$task) return false;
+
+        $task = $this->taskRepository->update($task, $data);
+        return $task;
+    }
 }

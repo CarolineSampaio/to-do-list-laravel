@@ -40,4 +40,14 @@ class TaskController extends Controller
 
         return $this->response('Tarefas listadas com sucesso', Response::HTTP_OK, $tasks->toArray());
     }
+
+    public function update(TaskRequest $request, $id)
+    {
+        $data = $request->safe()->only(['title', 'description', 'category_id']);
+
+        $task = $this->taskService->updateTask($id, $request->user_id, $data);
+        if (!$task) return $this->error('Tarefa não encontrada', Response::HTTP_NOT_FOUND);
+
+        return $this->response('Tarefa atualizada com sucesso', Response::HTTP_OK, $task->toArray());
+    }
 }
