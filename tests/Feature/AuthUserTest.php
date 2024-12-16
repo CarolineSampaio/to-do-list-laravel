@@ -149,4 +149,127 @@ class AuthUserTest extends TestCase
                 ]
             ]);
     }
+
+    // login tests
+    public function testUserCanLogin()
+    {
+        $response = $this->postJson('/api/login', [
+            'email' => 'test@example.com',
+            'password' => 'Password123@',
+        ]);
+
+        $response->assertStatus(200)->assertJsonStructure([
+            'message',
+            'status',
+            'data' => [
+                'token',
+            ],
+        ]);
+    }
+
+    public function testUserCanNotLoginWithInvalidCredentials()
+    {
+        $response = $this->postJson('/api/login', [
+            'email' => 'test@example.com',
+            'password' => 'Password1@',
+        ]);
+
+        $response->assertStatus(401)
+            ->assertJsonStructure([
+                'message',
+                'status',
+                'errors',
+            ])
+            ->assertJsonFragment([
+                'errors' => [
+                    'error' => 'Credenciais inválidas.',
+                ],
+            ]);
+    }
+
+    public function testUserCanNotLoginWithoutEmail()
+    {
+        $response = $this->postJson('/api/login', [
+            'password' => 'Password123@',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonStructure([
+                'message',
+                'errors' => [
+                    'email',
+                ],
+            ])
+            ->assertJsonFragment([
+                'errors' => [
+                    'email' => [
+                        'O email é obrigatório',
+                    ],
+                ],
+            ]);
+    }
+
+    public function testUserCanNotLoginWithoutPassword()
+    {
+        $response = $this->postJson('/api/login', [
+            'email' => 'test@example.com'
+        ]);
+
+        $response->assertStatus(422)->assertJsonStructure([
+            'message',
+            'errors' => [
+                'password',
+            ],
+        ]);
+
+        $response->assertJsonFragment([
+            'errors' => [
+                'password' => [
+                    'A senha é obrigatória',
+                ],
+            ],
+        ]);
+    }
+
+    public function testUserCanNotLoginWithInvalidEmail()
+    {
+        $response = $this->postJson('/api/login', [
+            'email' => 'invalid-email',
+            'password' => 'Password123@',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonStructure([
+                'message',
+                'errors' => [
+                    'email',
+                ],
+            ])
+            ->assertJsonFragment([
+                'errors' => [
+                    'email' => ['O email deve ser válido'],
+                ],
+            ]);
+    }
+
+    public function testUserCanNotLoginWithInvalidPassword()
+    {
+        $response = $this->postJson('/api/login', [
+            'email' => 'test@example',
+            'password' => 'Password',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonStructure([
+                'message',
+                'errors' => [
+                    'password',
+                ],
+            ])
+            ->assertJsonFragment([
+                'errors' => [
+                    'password' => ['A senha deve conter pelo menos uma letra maiúscula, um número e um caractere especial'],
+                ],
+            ]);
+    }
 }
