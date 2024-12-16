@@ -31,7 +31,7 @@ class CategoryController extends Controller
 
         $category = $this->categoryService->createCategory($data);
 
-        return $this->response('', Response::HTTP_CREATED, $category);
+        return $this->response('Categoria criada com sucesso', Response::HTTP_CREATED, $category);
     }
 
     public function index(Request $request)
@@ -48,5 +48,18 @@ class CategoryController extends Controller
         if ($category->isEmpty()) return $this->error('Categoria não encontrada', Response::HTTP_NOT_FOUND);
 
         return $this->response('Categoria do usuário listada com sucesso', Response::HTTP_OK, $category->toArray());
+    }
+
+    public function update($id, CategoryRequest $request)
+    {
+        $data = $request->safe()->only(['title']);
+
+        $data['title'] = strtolower($data['title']);
+        $data['user_id'] = $request->user_id;
+
+        $category = $this->categoryService->updateCategory($id, $request->user_id, $data);
+        if (!$category) return $this->error('Categoria não encontrada', Response::HTTP_NOT_FOUND);
+
+        return $this->response('Categoria atualizada com sucesso', Response::HTTP_OK, $category->toArray());
     }
 }

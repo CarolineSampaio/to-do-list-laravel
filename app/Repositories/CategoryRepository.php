@@ -26,4 +26,16 @@ class CategoryRepository implements CategoryRepositoryInterface
             ->where('id', $id)
             ->get();
     }
+
+    public function update($id, $user_id, $data)
+    {
+        $category = Category::where('id', $id)
+            ->where('user_id', $user_id)
+            ->first();
+
+        if (!$category) return false;
+
+        $category->update($data);
+        return $category;
+    }
 }

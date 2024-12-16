@@ -28,4 +28,9 @@ class CategoryService
     {
         return $this->categoryRepository->show($user_id, $id);
     }
+
+    public function updateCategory($id, $user_id, $data)
+    {
+        return $this->categoryRepository->update($id, $user_id, $data);
+    }
 }
