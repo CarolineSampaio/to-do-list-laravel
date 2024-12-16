@@ -323,4 +323,70 @@ class CategoryTest extends TestCase
             'message' => 'Categoria não encontrada',
         ]);
     }
+
+    // delete tests
+    public function testUserCanDeleteCategory()
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $category = Category::factory()->create(['user_id' => $user->id]);
+
+        $response = $this->deleteJson('/api/categories/' . $category->id);
+
+        $response->assertStatus(204)->assertNoContent();
+    }
+
+    public function testUserCanNotDeleteCategoryWithoutAuthenticationToken()
+    {
+        $user = User::factory()->create();
+
+        $category = Category::factory()->create(['user_id' => $user->id]);
+
+        $response = $this->deleteJson('/api/categories/' . $category->id);
+
+        $response->assertStatus(401)->assertJsonFragment([
+            'message' => 'Unauthenticated.',
+        ]);
+    }
+
+    public function testUserCanNotDeleteCategoryWithInvalidToken()
+    {
+        $user = User::factory()->create();
+
+        $category = Category::factory()->create(['user_id' => $user->id]);
+
+        $response = $this->withHeader('Authorization', 'Bearer 123', '')->deleteJson('/api/categories/' . $category->id);
+
+        $response->assertStatus(401)->assertJsonFragment([
+            'message' => 'Unauthenticated.',
+        ]);
+    }
+
+    public function testUserCanNotDeleteCategoryWithInvalidId()
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $response = $this->deleteJson('/api/categories/123');
+
+        $response->assertStatus(404)->assertJsonFragment([
+            'message' => 'Categoria não encontrada',
+        ]);
+    }
+
+    public function testUserCanNotDeleteCategoryBelongsToAnotherUser()
+    {
+        $user = User::factory()->create();
+        $category = Category::factory()->create(['user_id' => $user->id]);
+
+        $anotherUser = User::factory()->create();
+        $token = Sanctum::actingAs($anotherUser);
+
+        $response = $this->deleteJson('/api/categories/' . $category->id);
+
+        $response->assertStatus(404)->assertJsonFragment([
+            'message' => 'Categoria não encontrada',
+        ]);
+    }
 }
