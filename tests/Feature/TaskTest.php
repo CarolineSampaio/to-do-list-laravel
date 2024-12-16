@@ -151,4 +151,69 @@ class TaskTest extends TestCase
 
         $response->assertStatus(401);
     }
+
+    // list tasks
+    public function testUserCanFilterTasksByCategory()
+    {
+        $user =  User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $category1 = Category::factory()->create(['user_id' => $user->id]);
+        $category2 = Category::factory()->create(['user_id' => $user->id]);
+
+        $tasks = Task::factory(3)->create(['category_id' => $category1->id]);
+        $tasks->each(function ($task) use ($user) {
+            $task->users()->attach($user->id);
+        });
+
+        Task::factory(2)->create(['category_id' => $category2->id]);
+
+        $response = $this->getJson('/api/tasks?category=' . $category1->id);
+
+        $response->assertStatus(200)->assertJsonCount(3, 'data.*');
+    }
+
+    public function testUserCanFilterTasksByCompleted()
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $category = Category::factory()->create(['user_id' => $user->id]);
+        $tasks = Task::factory(3)->create(['category_id' => $category->id]);
+        $tasks->each(function ($task) use ($user) {
+            $task->users()->attach($user->id);
+        });
+
+        $completedTasks = Task::factory(2)->create(['category_id' => $category->id]);
+        $completedTasks->each(function ($task) use ($user) {
+            $task->users()->attach($user->id);
+            $this->patchJson("/api/tasks/{$task->id}/complete");
+        });
+
+        $response = $this->getJson('/api/tasks?completed=true');
+
+        $response->assertStatus(200)->assertJsonCount(2, 'data.*');
+    }
+
+    public function testUserCanFilterTasksByCategoryAndCompleted()
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $category1 = Category::factory()->create(['user_id' => $user->id]);
+
+        $tasks = Task::factory(3)->create(['category_id' => $category1->id]);
+        $tasks->each(function ($task) use ($user) {
+            $task->users()->attach($user->id);
+        });
+
+        $completedTasks = Task::factory(2)->create(['category_id' => $category1->id]);
+        $completedTasks->each(function ($task) use ($user) {
+            $task->users()->attach($user->id);
+            $this->patchJson("/api/tasks/{$task->id}/complete");
+        });
+
+        $response = $this->getJson('/api/tasks?category=' . $category1->id . '&completed=true');
+        $response->assertStatus(200)->assertJsonCount(2, 'data.*');
+    }
 }
