@@ -514,4 +514,135 @@ class TaskTest extends TestCase
             'message' => 'Tarefa não encontrada',
         ]);
     }
+
+    // complete task
+    public function testUserCanCompleteTask()
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $category = Category::factory()->create(['user_id' => $user->id]);
+        $task = Task::factory()->create([
+            'category_id' => $category->id,
+        ]);
+        $task->users()->attach($user->id);
+
+        $response = $this->patchJson("/api/tasks/{$task->id}/complete");
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'message' => 'Tarefa atualizada com sucesso',
+                'status' => 200,
+                'data' => [
+                    'id' => $task->id,
+                    'is_completed' => true,
+                    'completed_by' => $user->id,
+                    'completed_at' => $response->json('data.completed_at')
+                ]
+            ]);
+    }
+
+    public function testUserCanUnCompleteTask()
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $category = Category::factory()->create(['user_id' => $user->id]);
+        $task = Task::factory()->create([
+            'category_id' => $category->id,
+            'is_completed' => true,
+            'completed_by' => $user->id,
+            'completed_at' => now(),
+        ]);
+
+        $task->users()->attach($user->id);
+
+        $response = $this->patchJson("/api/tasks/{$task->id}/complete");
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'message' => 'Tarefa atualizada com sucesso',
+                'data' => [
+                    'is_completed' => false,
+                    'completed_by' => null,
+                    'completed_at' => null,
+                ]
+            ]);
+    }
+
+    public function testUserCanNotCompleteTaskWithInvalidId()
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $response = $this->patchJson("/api/tasks/999/complete");
+
+        $response->assertStatus(404)
+            ->assertJson([
+                'message' => 'Tarefa não encontrada',
+            ]);
+    }
+
+    public function testUserCanNotCompleteTaskWithNonNumericId()
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $response = $this->patchJson("/api/tasks/invalid/complete");
+
+        $response->assertStatus(404)
+            ->assertJson([
+                'message' => 'Tarefa não encontrada',
+            ]);
+    }
+
+    public function testUserCanNotCompleteTaskThatBelongsToAnotherUser()
+    {
+        $user = User::factory()->create();
+        $anotherUser = User::factory()->create();
+        Sanctum::actingAs($anotherUser);
+
+        $category = Category::factory()->create(['user_id' => $user->id]);
+        $task = Task::factory()->create([
+            'category_id' => $category->id,
+            'is_completed' => false,
+        ]);
+
+        $task->users()->attach($user->id);
+
+        $response = $this->patchJson("/api/tasks/{$task->id}/complete");
+
+        $response->assertStatus(404)
+            ->assertJson([
+                'message' => 'Tarefa não encontrada',
+            ]);
+    }
+
+    public function testUserCanNotCompleteTaskWithoutAuthentication()
+    {
+        $user = User::factory()->create();
+        $task = Task::factory()->create();
+        $task->users()->attach($user->id);
+
+        $response = $this->patchJson("/api/tasks/{$task->id}/complete");
+
+        $response->assertStatus(401)
+            ->assertJson([
+                'message' => 'Unauthenticated.',
+            ]);
+    }
+
+    public function testUserCanNotCompleteTaskWithInvalidToken()
+    {
+        $user = User::factory()->create();
+        $task = Task::factory()->create();
+        $task->users()->attach($user->id);
+
+        $response = $this->withHeader('Authorization', 'Bearer invalid_token')->patchJson("/api/tasks/{$task->id}/complete");
+
+        $response->assertStatus(401)
+            ->assertJson([
+                'message' => 'Unauthenticated.',
+            ]);
+    }
 }
