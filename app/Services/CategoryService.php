@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Repositories\CategoryRepository;
 
-
 class CategoryService
 {
     private $categoryRepository;
@@ -31,6 +30,9 @@ class CategoryService
 
     public function updateCategory($id, $user_id, $data)
     {
-        return $this->categoryRepository->update($id, $user_id, $data);
+        $category = $this->showCategory($user_id, $id);
+        if ($category->isEmpty()) return false;
+
+        return $this->categoryRepository->update($category->first(), $data);
     }
 }
