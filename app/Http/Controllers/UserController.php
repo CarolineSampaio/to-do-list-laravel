@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Http\Requests\LoginUserRequest;
 use App\Http\Requests\StoreUserRequest;
+
 use App\Services\UserService;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -23,5 +24,15 @@ class UserController extends Controller
         $user =  $this->userService->createUser($validated);
 
         return $this->response('Usuário cadastrado com sucesso.', Response::HTTP_CREATED, $user);
+    }
+
+    public function login(LoginUserRequest $request)
+    {
+        $validated = $request->safe()->only(['email', 'password']);
+
+        $token = $this->userService->login($validated);
+        if (!$token) return $this->error('Email ou senha incorretos', Response::HTTP_UNAUTHORIZED, ['error' => 'Credenciais inválidas.']);
+
+        return $this->response('Usuário logado com sucesso.', Response::HTTP_OK, ['token' => $token]);
     }
 }
