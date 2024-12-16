@@ -124,4 +124,70 @@ class CategoryTest extends TestCase
             'message' => 'Unauthenticated.',
         ]);
     }
+
+    // show tests
+    public function testUserCanShowCategory()
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $category = Category::factory()->create(['user_id' => $user->id]);
+
+        $response = $this->getJson('/api/categories/' . $category->id);
+
+        $response->assertStatus(200)
+            ->assertJsonFragment(['title' => $category->title])
+            ->assertJsonStructure(['message', 'status', 'data' => ['*' => ['id', 'title']]]);
+    }
+
+    public function testUserCanNotShowCategoryWithoutAuthenticationToken()
+    {
+        $user = User::factory()->create();
+        $category = Category::factory()->create(['user_id' => $user->id]);
+
+        $response = $this->getJson('/api/categories/' . $category->id);
+
+        $response->assertStatus(401)->assertJsonFragment([
+            'message' => 'Unauthenticated.',
+        ]);
+    }
+
+    public function testUserCanNotShowCategoryWithInvalidToken()
+    {
+        $user = User::factory()->create();
+        $category = Category::factory()->create(['user_id' => $user->id]);
+
+        $response = $this->withHeader('Authorization', 'Bearer 123')->getJson('/api/categories/' . $category->id);
+
+        $response->assertStatus(401)->assertJsonFragment([
+            'message' => 'Unauthenticated.',
+        ]);
+    }
+
+    public function testUserCanNotShowCategoryWithInvalidId()
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $response = $this->getJson('/api/categories/123');
+
+        $response->assertStatus(404)->assertJsonFragment([
+            'message' => 'Categoria não encontrada',
+        ]);
+    }
+
+    public function testUserCanNotShowCategoryBelongsToAnotherUser()
+    {
+        $user = User::factory()->create();
+        $anotherUser = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $category = Category::factory()->create(['user_id' => $anotherUser->id]);
+
+        $response = $this->getJson('/api/categories/' . $category->id);
+
+        $response->assertStatus(404)->assertJsonFragment([
+            'message' => 'Categoria não encontrada',
+        ]);
+    }
 }
