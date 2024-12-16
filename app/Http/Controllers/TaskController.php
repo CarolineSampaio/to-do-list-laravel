@@ -58,4 +58,12 @@ class TaskController extends Controller
 
         return $this->response('', Response::HTTP_NO_CONTENT);
     }
+
+    public function toggleComplete(Request $request, $id)
+    {
+        $task = $this->taskService->completeTask($id, $request->user_id);
+        if (!$task) return $this->error('Tarefa não encontrada', Response::HTTP_NOT_FOUND);
+
+        return $this->response('Tarefa atualizada com sucesso', Response::HTTP_OK, $task);
+    }
 }

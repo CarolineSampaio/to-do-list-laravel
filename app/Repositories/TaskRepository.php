@@ -56,4 +56,13 @@ class TaskRepository implements TaskRepositoryInterface
     {
         $task->delete();
     }
+
+    public function updateTaskCompletionStatus($task, $isCompleted, $userId = null)
+    {
+        $task->update([
+            'is_completed' => $isCompleted,
+            'completed_by' => $isCompleted ? $userId : null,
+            'completed_at' => $isCompleted ? now() : null,
+        ]);
+    }
 }

@@ -44,4 +44,14 @@ class TaskService
         $this->taskRepository->delete($task);
         return true;
     }
+
+    public function completeTask($id, $userId)
+    {
+        $task = $this->taskRepository->findOne($id, $userId);
+        if (!$task) return false;
+
+        $isCompleted = !$task->is_completed;
+        $this->taskRepository->updateTaskCompletionStatus($task, $isCompleted, $userId);
+        return $task;
+    }
 }
