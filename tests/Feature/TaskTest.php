@@ -423,4 +423,95 @@ class TaskTest extends TestCase
 
         $response->assertStatus(401);
     }
+
+    // delete task
+    public function testUserCanDeleteHisOwnTask()
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $task = Task::factory()->create();
+        $task->users()->attach($user->id);
+
+        $response = $this->delete("/api/tasks/{$task->id}");
+
+        $response->assertStatus(204);
+        $this->assertDatabaseMissing('tasks', ['id' => $task->id]);
+    }
+
+    public function testUserCanNotDeleteTaskThatBelongsToAnotherUser()
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $user2 = User::factory()->create();
+        $task = Task::factory()->create();
+        $task->users()->attach($user2->id);
+
+        $response = $this->delete("/api/tasks/{$task->id}");
+
+        $response->assertStatus(404)->assertJsonFragment([
+            'message' => 'Tarefa não encontrada',
+        ]);
+    }
+
+    public function testUserCanNotDeleteTaskWithoutAuthentication()
+    {
+        $user = User::factory()->create();
+        $task = Task::factory()->create();
+        $task->users()->attach($user->id);
+
+        $response = $this->deleteJson("/api/tasks/{$task->id}");
+
+        $response->assertStatus(401)->assertJsonFragment([
+            'message' => 'Unauthenticated.',
+        ]);
+    }
+
+    public function testUserCanNotDeleteTaskWithInvalidToken()
+    {
+        $task = Task::factory()->create();
+
+        $response = $this->withHeader('Authorization', 'Bearer 123')->deleteJson("/api/tasks/{$task->id}");
+
+        $response->assertStatus(401)->assertJsonFragment([
+            'message' => 'Unauthenticated.',
+        ]);
+    }
+
+    public function testUserCanNotDeleteNonExistingTask()
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $response = $this->delete("/api/tasks/999");
+
+        $response->assertStatus(404)->assertJsonFragment([
+            'message' => 'Tarefa não encontrada',
+        ]);
+    }
+
+    public function testUserCanNotDeleteTaskWithInvalidId()
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $response = $this->delete("/api/tasks/invalid");
+
+        $response->assertStatus(404)->assertJsonFragment([
+            'message' => 'Tarefa não encontrada',
+        ]);
+    }
+
+    public function testUserCanNotDeleteTaskWithNonNumericId()
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $response = $this->delete("/api/tasks/invalid");
+
+        $response->assertStatus(404)->assertJsonFragment([
+            'message' => 'Tarefa não encontrada',
+        ]);
+    }
 }
