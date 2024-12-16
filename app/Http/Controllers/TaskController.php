@@ -50,4 +50,12 @@ class TaskController extends Controller
 
         return $this->response('Tarefa atualizada com sucesso', Response::HTTP_OK, $task->toArray());
     }
+
+    public function destroy($id, Request $request)
+    {
+        $task = $this->taskService->deleteTask($request->user_id, $id);
+        if (!$task) return $this->error('Tarefa não encontrada', Response::HTTP_NOT_FOUND);
+
+        return $this->response('', Response::HTTP_NO_CONTENT);
+    }
 }

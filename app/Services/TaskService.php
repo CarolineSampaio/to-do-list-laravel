@@ -35,4 +35,13 @@ class TaskService
         $task = $this->taskRepository->update($task, $data);
         return $task;
     }
+
+    public function deleteTask($userId, $id)
+    {
+        $task = $this->taskRepository->findOne($id, $userId);
+        if (!$task) return false;
+
+        $this->taskRepository->delete($task);
+        return true;
+    }
 }

@@ -9,4 +9,5 @@ interface TaskRepositoryInterface
     public function list(array $filters, $userId);
     public function findOne($id, $userId);
     public function update($task, array $data);
+    public function delete($task): void;
 }

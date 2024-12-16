@@ -51,4 +51,9 @@ class TaskRepository implements TaskRepositoryInterface
         $task->update($data);
         return $task;
     }
+
+    public function delete($task): void
+    {
+        $task->delete();
+    }
 }
