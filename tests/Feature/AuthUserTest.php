@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\User;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class AuthUserTest extends TestCase
@@ -271,5 +273,34 @@ class AuthUserTest extends TestCase
                     'password' => ['A senha deve conter pelo menos uma letra maiúscula, um número e um caractere especial'],
                 ],
             ]);
+    }
+
+    // logout tests
+    public function testUserCanLogout()
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $response = $this->postJson('/api/logout');
+
+        $response->assertStatus(204);
+    }
+
+    public function testUserCanNotLogoutWithoutAuthenticationToken()
+    {
+        $response = $this->postJson('/api/logout');
+
+        $response->assertStatus(401)->assertJsonFragment([
+            'message' => 'Unauthenticated.',
+        ]);
+    }
+
+    public function testUserCanNotLogoutWithInvalidAuthenticationToken()
+    {
+        $response = $this->withHeader('Authorization', 'Bearer 123')->postJson('/api/logout');
+
+        $response->assertStatus(401)->assertJsonFragment([
+            'message' => 'Unauthenticated.',
+        ]);
     }
 }
