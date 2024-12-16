@@ -23,7 +23,7 @@ class TaskRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        $rules = [
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'category_id' => [
@@ -35,6 +35,12 @@ class TaskRequest extends FormRequest
                     }),
             ],
         ];
+
+        if ($this->isMethod('patch') || $this->isMethod('put')) {
+            $rules['title'] = 'sometimes|string|max:150';
+        }
+
+        return $rules;
     }
     public function messages(): array
     {
