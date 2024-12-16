@@ -18,4 +18,9 @@ class CategoryService
     {
         return $this->categoryRepository->create($data);
     }
+
+    public function listAllCategories($user_id)
+    {
+        return $this->categoryRepository->listAll($user_id);
+    }
 }

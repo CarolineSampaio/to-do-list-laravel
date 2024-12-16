@@ -12,4 +12,11 @@ class CategoryRepository implements CategoryRepositoryInterface
     {
         return Category::create($data);
     }
+
+    public function listAll($user_id)
+    {
+        return Category::where('user_id', $user_id)
+            ->orderBy('created_At', 'asc')
+            ->get();
+    }
 }
