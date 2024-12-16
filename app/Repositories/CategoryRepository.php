@@ -32,4 +32,10 @@ class CategoryRepository implements CategoryRepositoryInterface
         $category->update($data);
         return $category;
     }
+
+    public function delete($category)
+    {
+        $category->delete();
+        return true;
+    }
 }

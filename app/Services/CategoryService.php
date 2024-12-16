@@ -35,4 +35,12 @@ class CategoryService
 
         return $this->categoryRepository->update($category->first(), $data);
     }
+
+    public function deleteCategory($user_id, $id)
+    {
+        $category = $this->showCategory($user_id, $id);
+        if ($category->isEmpty()) return false;
+
+        return $this->categoryRepository->delete($category->first());
+    }
 }

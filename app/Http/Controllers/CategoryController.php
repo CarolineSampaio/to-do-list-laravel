@@ -62,4 +62,12 @@ class CategoryController extends Controller
 
         return $this->response('Categoria atualizada com sucesso', Response::HTTP_OK, $category->toArray());
     }
+
+    public function destroy($id, Request $request)
+    {
+        $category = $this->categoryService->deleteCategory($request->user_id, $id);
+        if (!$category) return $this->error('Categoria não encontrada', Response::HTTP_NOT_FOUND);
+
+        return $this->response('', Response::HTTP_NO_CONTENT);
+    }
 }
