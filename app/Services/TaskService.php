@@ -21,4 +21,9 @@ class TaskService
 
         return $task;
     }
+
+    public function listTasks(array $filters, $userId)
+    {
+        return $this->taskRepository->list($filters, $userId);
+    }
 }

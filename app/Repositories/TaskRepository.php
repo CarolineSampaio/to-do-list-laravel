@@ -20,4 +20,21 @@ class TaskRepository implements TaskRepositoryInterface
     {
         $task->users()->attach($userId);
     }
+
+    public function list(array $filters, $userId)
+    {
+        $tasks = Task::whereHas('users', function ($query) use ($userId) {
+            $query->where('user_id', $userId);
+        });
+
+        if (isset($filters['category'])) {
+            $tasks->where('category_id', $filters['category']);
+        }
+
+        if (isset($filters['completed'])) {
+            $tasks->where('is_completed', filter_var($filters['completed'], FILTER_VALIDATE_BOOLEAN));
+        }
+
+        return $tasks->get();
+    }
 }

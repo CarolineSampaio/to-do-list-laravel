@@ -34,4 +34,9 @@ class Task extends Model
     {
         return $this->belongsToMany(User::class, 'task_user')->withTimestamps();
     }
+
+    public function getIsCompletedAttribute($value)
+    {
+        return (bool) $value;
+    }
 }
