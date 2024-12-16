@@ -216,4 +216,211 @@ class TaskTest extends TestCase
         $response = $this->getJson('/api/tasks?category=' . $category1->id . '&completed=true');
         $response->assertStatus(200)->assertJsonCount(2, 'data.*');
     }
+
+    // update task
+    public function testUserCanUpdateHisOwnTask()
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $category = Category::factory()->create(['user_id' => $user->id]);
+        $task = Task::factory()->create(['category_id' => $category->id]);
+        $task->users()->attach($user->id);
+
+        $response = $this->putJson("/api/tasks/{$task->id}", [
+            'title' => 'Updated Task',
+            'description' => 'This is an updated task',
+            'category_id' => $category->id,
+        ]);
+
+        $response->assertStatus(200)->assertJsonFragment([
+            'title' => 'Updated Task',
+            'description' => 'This is an updated task',
+            'category_id' => $category->id,
+        ]);
+    }
+
+    public function testUserCanUpdateHisOwnTaskWithoutCategory()
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $task = Task::factory()->create();
+        $task->users()->attach($user->id);
+
+        $response = $this->putJson("/api/tasks/{$task->id}", [
+            'title' => 'Updated Task',
+            'description' => 'This is an updated task',
+        ]);
+
+        $response->assertStatus(200)->assertJsonFragment([
+            'title' => 'Updated Task',
+            'description' => 'This is an updated task',
+            'category_id' => null,
+        ]);
+    }
+
+    public function testUserCanUpdateHisOwnTaskWithoutDescription()
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $task = Task::factory()->create();
+        $task->users()->attach($user->id);
+
+        $response = $this->putJson("/api/tasks/{$task->id}", [
+            'title' => 'Updated Task',
+        ]);
+
+        $response->assertStatus(200)->assertJsonFragment([
+            'title' => 'Updated Task',
+            'description' => null,
+        ]);
+    }
+
+    public function testUserCanUpdateOnlyDescription()
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $category = Category::factory()->create(['user_id' => $user->id]);
+        $task = Task::factory()->create(['category_id' => $category->id]);
+        $task->users()->attach($user->id);
+
+        $response = $this->putJson("/api/tasks/{$task->id}", [
+            'description' => 'This is an updated task',
+        ]);
+
+        $response->assertStatus(200)->assertJsonFragment([
+            'description' => 'This is an updated task',
+        ]);
+    }
+
+    public function testUserCanUpdateOnlyCategory()
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $category = Category::factory()->create(['user_id' => $user->id]);
+        $task = Task::factory()->create();
+        $task->users()->attach($user->id);
+
+        $response = $this->putJson("/api/tasks/{$task->id}", [
+            'category_id' => $category->id,
+        ]);
+
+        $response->assertStatus(200)->assertJsonFragment([
+            'category_id' => $category->id,
+        ]);
+    }
+
+    public function testUserCanNotUpdateTaskWithEmptyTitle()
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $task = Task::factory()->create();
+        $task->users()->attach($user->id);
+
+        $response = $this->putJson("/api/tasks/{$task->id}", [
+            'title' => '',
+        ]);
+
+        $response->assertStatus(422)->assertJsonValidationErrors('title');
+    }
+
+    public function testUserCanNotUpdateTaskWithInvalidCategory()
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $task = Task::factory()->create();
+        $task->users()->attach($user->id);
+
+        $response = $this->putJson("/api/tasks/{$task->id}", [
+            'title' => 'Updated Task',
+            'category_id' => 999,
+        ]);
+
+        $response->assertStatus(422)->assertJsonValidationErrors('category_id');
+    }
+
+    public function testUserCanNotUpdateTaskWithInvalidCategoryType()
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $task = Task::factory()->create();
+        $task->users()->attach($user->id);
+
+        $response = $this->putJson("/api/tasks/{$task->id}", [
+            'title' => 'Updated Task',
+            'category_id' => 'invalid',
+        ]);
+
+        $response->assertStatus(422)->assertJsonValidationErrors('category_id');
+    }
+
+    public function testUserCanNotUpdateTaskWithCategoryThatBelongsToAnotherUser()
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $task = Task::factory()->create();
+        $task->users()->attach($user->id);
+
+        $user2 = User::factory()->create();
+        $category = Category::factory()->create(['user_id' => $user2->id]);
+
+        $response = $this->putJson("/api/tasks/{$task->id}", [
+            'title' => 'Updated Task',
+            'category_id' => $category->id,
+        ]);
+
+        $response->assertStatus(422)->assertJsonValidationErrors('category_id');
+    }
+
+    public function testUserCanNotUpdateTaskThatBelongsToAnotherUser()
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $task = Task::factory()->create();
+        $user2 = User::factory()->create();
+        $task->users()->attach($user2->id);
+
+        $response = $this->putJson("/api/tasks/{$task->id}", [
+            'title' => 'Updated Task',
+        ]);
+
+        $response->assertStatus(404)->assertJsonFragment([
+            'message' => 'Tarefa não encontrada',
+        ]);
+    }
+
+    public function testUserCanNotUpdateTaskWithoutAuthentication()
+    {
+        $user = User::factory()->create();
+        $task = Task::factory()->create();
+        $task->users()->attach($user->id);
+
+        $response = $this->putJson("/api/tasks/{$task->id}", [
+            'title' => 'Updated Task',
+        ]);
+
+        $response->assertStatus(401);
+    }
+
+    public function testUserCanNotUpdateTaskWithInvalidToken()
+    {
+        $user = User::factory()->create();
+        $task = Task::factory()->create();
+        $task->users()->attach($user->id);
+
+        $response = $this->withHeader('Authorization', 'Bearer invalid_token')->putJson("/api/tasks/{$task->id}", [
+            'title' => 'Updated Task',
+        ]);
+
+        $response->assertStatus(401);
+    }
 }
