@@ -23,4 +23,9 @@ class CategoryService
     {
         return $this->categoryRepository->listAll($user_id);
     }
+
+    public function showCategory($user_id, $id)
+    {
+        return $this->categoryRepository->show($user_id, $id);
+    }
 }

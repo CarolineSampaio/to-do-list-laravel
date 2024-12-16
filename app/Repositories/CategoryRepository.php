@@ -19,4 +19,11 @@ class CategoryRepository implements CategoryRepositoryInterface
             ->orderBy('created_At', 'asc')
             ->get();
     }
+
+    public function show($user_id, $id)
+    {
+        return Category::where('user_id', $user_id)
+            ->where('id', $id)
+            ->get();
+    }
 }

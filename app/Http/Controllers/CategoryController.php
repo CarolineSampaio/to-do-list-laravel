@@ -40,4 +40,13 @@ class CategoryController extends Controller
 
         return $this->response('Categorias do usuário listadas com sucesso', Response::HTTP_OK, $categories->toArray());
     }
+
+    public function show(Request $request, $id)
+    {
+        $category = $this->categoryService->showCategory($request->user_id, $id);
+
+        if ($category->isEmpty()) return $this->error('Categoria não encontrada', Response::HTTP_NOT_FOUND);
+
+        return $this->response('Categoria do usuário listada com sucesso', Response::HTTP_OK, $category->toArray());
+    }
 }
