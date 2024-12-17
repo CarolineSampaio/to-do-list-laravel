@@ -18,7 +18,7 @@ class TaskController extends Controller
         $this->taskService = $taskService;
 
         $this->middleware(function ($request, $next) {
-            $request->merge(['user_id' => Auth::id()]);
+            $request->merge(['userId' => Auth::id()]);
             return $next($request);
         });
     }
@@ -27,7 +27,7 @@ class TaskController extends Controller
     {
         $data = $request->safe()->only(['title', 'description', 'category_id']);
 
-        $task = $this->taskService->createTask($data, $request->user_id);
+        $task = $this->taskService->createTask($data, $request->userId);
 
         return $this->response('Tarefa criada com sucesso', Response::HTTP_CREATED, $task->toArray());
     }
@@ -36,7 +36,7 @@ class TaskController extends Controller
     {
         $filters = $request->only(['category', 'completed']);
 
-        $tasks = $this->taskService->listTasks($filters, $request->user_id);
+        $tasks = $this->taskService->listTasks($filters, $request->userId);
 
         return $this->response('Tarefas listadas com sucesso', Response::HTTP_OK, $tasks->toArray());
     }
@@ -45,7 +45,7 @@ class TaskController extends Controller
     {
         $data = $request->safe()->only(['title', 'description', 'category_id']);
 
-        $task = $this->taskService->updateTask($id, $request->user_id, $data);
+        $task = $this->taskService->updateTask($id, $request->userId, $data);
         if (!$task) return $this->error('Tarefa não encontrada', Response::HTTP_NOT_FOUND);
 
         return $this->response('Tarefa atualizada com sucesso', Response::HTTP_OK, $task->toArray());
@@ -53,7 +53,7 @@ class TaskController extends Controller
 
     public function destroy($id, Request $request)
     {
-        $task = $this->taskService->deleteTask($request->user_id, $id);
+        $task = $this->taskService->deleteTask($request->userId, $id);
         if (!$task) return $this->error('Tarefa não encontrada', Response::HTTP_NOT_FOUND);
 
         return $this->response('', Response::HTTP_NO_CONTENT);
@@ -61,7 +61,7 @@ class TaskController extends Controller
 
     public function toggleComplete(Request $request, $id)
     {
-        $task = $this->taskService->completeTask($id, $request->user_id);
+        $task = $this->taskService->completeTask($id, $request->userId);
         if (!$task) return $this->error('Tarefa não encontrada', Response::HTTP_NOT_FOUND);
 
         return $this->response('Tarefa atualizada com sucesso', Response::HTTP_OK, $task);

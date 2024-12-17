@@ -17,7 +17,7 @@ class CategoryController extends Controller
         $this->categoryService = $categoryService;
 
         $this->middleware(function ($request, $next) {
-            $request->merge(['user_id' => Auth::id()]);
+            $request->merge(['userId' => Auth::id()]);
             return $next($request);
         });
     }
@@ -27,7 +27,7 @@ class CategoryController extends Controller
         $data = $request->safe()->only(['title']);
 
         $data['title'] = strtolower($data['title']);
-        $data['user_id'] = $request->user_id;
+        $data['user_id'] = $request->userId;
 
         $category = $this->categoryService->createCategory($data);
 
@@ -36,14 +36,14 @@ class CategoryController extends Controller
 
     public function index(Request $request)
     {
-        $categories = $this->categoryService->ListAllCategories($request->user_id);
+        $categories = $this->categoryService->listAllCategories($request->userId);
 
         return $this->response('Categorias do usuário listadas com sucesso', Response::HTTP_OK, $categories->toArray());
     }
 
     public function show(Request $request, $id)
     {
-        $category = $this->categoryService->showCategory($request->user_id, $id);
+        $category = $this->categoryService->showCategory($request->userId, $id);
 
         if ($category->isEmpty()) return $this->error('Categoria não encontrada', Response::HTTP_NOT_FOUND);
 
@@ -55,9 +55,9 @@ class CategoryController extends Controller
         $data = $request->safe()->only(['title']);
 
         $data['title'] = strtolower($data['title']);
-        $data['user_id'] = $request->user_id;
+        $data['user_id'] = $request->userId;
 
-        $category = $this->categoryService->updateCategory($id, $request->user_id, $data);
+        $category = $this->categoryService->updateCategory($id, $request->userId, $data);
         if (!$category) return $this->error('Categoria não encontrada', Response::HTTP_NOT_FOUND);
 
         return $this->response('Categoria atualizada com sucesso', Response::HTTP_OK, $category->toArray());
@@ -65,7 +65,7 @@ class CategoryController extends Controller
 
     public function destroy($id, Request $request)
     {
-        $category = $this->categoryService->deleteCategory($request->user_id, $id);
+        $category = $this->categoryService->deleteCategory($request->userId, $id);
         if (!$category) return $this->error('Categoria não encontrada', Response::HTTP_NOT_FOUND);
 
         return $this->response('', Response::HTTP_NO_CONTENT);
