@@ -6,7 +6,12 @@ const router = createRouter({
         {
             path: '/',
             component: () => import('./pages/Login.vue')
+        },
+        {
+            path: '/register',
+            component: () => import('./pages/Register.vue')
         }
+
     ],
 })
 

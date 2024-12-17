@@ -15,6 +15,20 @@ export default {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
         },
+        keyframes: {
+            slide: {
+              '0%': { flex: '30%' },
+              '100%': { flex: '60%' }
+            },
+            slideOut: {
+              '0%': { flex: '70%' },
+              '100%': { flex: '40%' }
+            }
+          },
+          animation: {
+            slide: 'slide 1s ease forwards',
+            slideOut: 'slideOut 1s ease forwards'
+          }
     },
     plugins: [],
 };
