@@ -18,4 +18,22 @@ const router = createRouter({
     ],
 });
 
+router.beforeEach((to, from, next) => {
+    const isLoggedIn = isAuthenticated();
+
+    if ((to.path === '/' || to.path === '/register') && isLoggedIn) {
+        return next({ path: '/home' });
+    }
+
+    if (to.path !== '/' && to.path !== '/register' && !isLoggedIn) {
+        return next({ path: '/' });
+    }
+
+    return next();
+});
+
+function isAuthenticated() {
+    return Boolean(localStorage.getItem('logged_user'))
+}
+
 export default router;
