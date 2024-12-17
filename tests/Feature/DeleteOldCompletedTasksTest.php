@@ -4,14 +4,11 @@ namespace Tests\Feature;
 
 use App\Jobs\DeleteOldCompletedTasks;
 use App\Models\Task;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class DeleteOldCompletedTasksTest extends TestCase
 {
-    use RefreshDatabase;
-
     public function testCanDeleteTasksCompletedMoreThanAWeekAgo()
     {
         $oldTask = Task::factory()->create([
