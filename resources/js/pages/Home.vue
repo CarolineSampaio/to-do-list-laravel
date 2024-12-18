@@ -1,11 +1,8 @@
 <template>
     <div class="container mx-auto p-4 sm:p-6 md:mt-20 mt-6">
-        <div
-            class="bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-3xl p-6 mb-6 shadow-lg"
-        >
-            <div
-                class="flex flex-col sm:flex-row justify-between items-center sm:items-start"
-            >
+
+        <div class="bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-3xl p-6 mb-6 shadow-lg">
+            <div class="flex flex-col sm:flex-row justify-between items-center sm:items-start">
                 <div class="flex flex-col items-center sm:items-start">
                     <h2 class="text-2xl font-bold text-white mb-2">
                         Bem-vindo!
@@ -16,61 +13,51 @@
                     </p>
                 </div>
             </div>
+
         </div>
 
         <div class="flex flex-col sm:flex-row justify-between gap-6">
-            <div
-                class="bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-2xl p-6 flex-1 shadow-lg"
-            >
+
+            <div class="bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-2xl p-6 flex-1 shadow-lg">
                 <div class="flex flex-col items-center sm:items-start mb-4">
-                    <img
-                        src="../../assets/tasks.svg"
-                        alt="Ícone de tarefas"
-                        class="h-32 mb-4 mx-auto mt-6"
-                    />
+                    <img src="../../assets/tasks.svg" alt="Ícone de tarefas" class="h-32 mb-4 mx-auto mt-6" />
                     <h3 class="text-4xl font-bold text-white mx-auto mt-6">
                         {{ amountTasks }}
                     </h3>
-                    <p class="text-2xl text-white mx-auto mt-4">Tarefas Cadastradas</p>
+                    <p class="text-2xl text-white mx-auto mt-4">
+                        Tarefas Cadastradas
+                    </p>
                 </div>
                 <router-link to="/tasks">
                     <button
-                        class="w-full mt-6 py-2 bg-gray-800 text-white rounded-lg font-semibold hover:bg-gray-900 transition"
-                    >
-                    Gerenciar Tarefas
+                        class="w-full mt-6 py-2 bg-gray-800 text-white rounded-lg font-semibold hover:bg-gray-900 transition">
+                        Gerenciar Tarefas
                     </button>
                 </router-link>
             </div>
 
-            <div
-                class="bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-2xl p-6 flex-1 shadow-lg"
-            >
+            <div class="bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-2xl p-6 flex-1 shadow-lg">
                 <div class="flex flex-col items-center sm:items-start mb-4">
-                    <img
-                        src="../../assets/categories.svg"
-                        alt="Ícone de categorias"
-                        class="h-32 mb-4 mx-auto mt-6"
-                    />
+                    <img src="../../assets/categories.svg" alt="Ícone de categorias" class="h-32 mb-4 mx-auto mt-6" />
                     <h3 class="text-4xl font-bold text-white mx-auto mt-6">
                         {{ amountCategories }}
                     </h3>
-                    <p class="text-2xl text-white mx-auto mt-4">Categorias Cadastradas</p>
+                    <p class="text-2xl text-white mx-auto mt-4">
+                        Categorias Cadastradas
+                    </p>
                 </div>
                 <router-link to="/categories">
                     <button
-                        class="w-full mt-6 py-2 bg-gray-800 text-white rounded-lg font-semibold hover:bg-gray-900 transition"
-                    >
-                    Gerenciar Categorias
+                        class="w-full mt-6 py-2 bg-gray-800 text-white rounded-lg font-semibold hover:bg-gray-900 transition">
+                        Gerenciar Categorias
                     </button>
                 </router-link>
             </div>
+
         </div>
 
-        <div
-            v-if="snackbarError"
-            class="mt-4 bg-red-600 text-white p-4 rounded-lg"
-        >
-            Erro ao carregar informações do dashboard!
+        <div v-if="snackbarError" class="mt-4 bg-red-600 text-white p-4 rounded-lg top-20 right-4 fixed">
+            {{ snackbarMessage }}
         </div>
     </div>
 </template>
@@ -96,9 +83,9 @@ export default {
         cleanToken() {
             return localStorage.getItem("logged_user")
                 ? localStorage
-                      .getItem("logged_user")
-                      .replace(/^.*?\|/, "")
-                      .replace(/"/g, "")
+                    .getItem("logged_user")
+                    .replace(/^.*?\|/, "")
+                    .replace(/"/g, "")
                 : "";
         },
         authenticateUser() {
@@ -121,8 +108,18 @@ export default {
                     this.amountTasks = response.data.data.length;
                 })
                 .catch((error) => {
-                    console.log(error);
-                    this.snackbarError = true;
+                    if (error.response.status === 401) {
+                        this.snackbarError = true;
+                        this.snackbarMessage = "Sua sessão expirou. Faça login novamente.";
+
+                        setTimeout(() => {
+                            // localStorage.removeItem("logged_user");
+                            this.$router.push("/");
+                        }, 3000);
+                    } else {
+                        this.snackbarError = true;
+                        this.snackbarMessage = "Erro ao carregar informações do dashboard!";
+                    }
                 });
 
             axios
@@ -135,8 +132,18 @@ export default {
                     this.amountCategories = response.data.data.length;
                 })
                 .catch((error) => {
-                    console.log(error);
-                    this.snackbarError = true;
+                    if (error.response.status === 401) {
+                        this.snackbarError = true;
+                        this.snackbarMessage = "Sua sessão expirou. Faça login novamente.";
+
+                        setTimeout(() => {
+                            localStorage.removeItem("logged_user");
+                            this.$router.push("/");
+                        }, 3000);
+                    } else {
+                        this.snackbarError = true;
+                        this.snackbarMessage = "Erro ao carregar informações do dashboard!";
+                    }
                 });
         },
     },

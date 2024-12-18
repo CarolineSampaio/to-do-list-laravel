@@ -65,11 +65,8 @@
                     class="bg-green-500 text-white py-2 px-4 rounded mt-4 fixed right-60 top-32">
                     {{ categoryId ? 'Categoria editada com sucesso!' : 'Categoria cadastrada com sucesso!' }}
                 </div>
-                <div v-if="signUpError" class="bg-red-500 text-white py-2 px-4 rounded mt-4">
-                    Erro ao cadastrar categoria!
-                </div>
-                <div v-if="loadError" class="bg-red-500 text-white py-2 px-4 rounded mt-4">
-                    Erro ao carregar categorias!
+                <div v-if="snackbarError" class="mt-4 bg-red-600 text-white p-4 rounded-lg top-20 right-4 fixed">
+                    {{ snackbarMessage }}
                 </div>
             </div>
         </div>
@@ -93,7 +90,7 @@ export default {
             categories: [],
             errors: {},
             snackbarSuccess: false,
-            signUpError: false,
+            snackbarError: false,
             loadError: false,
             isLoading: false,
             categoryId: this.$route?.params?.id
@@ -128,7 +125,18 @@ export default {
                     this.categories = response.data.data;
                 })
                 .catch((error) => {
-                    this.loadError = true;
+                    if (error.response.status === 401) {
+                        this.snackbarError = true;
+                        this.snackbarMessage = "Sua sessão expirou. Faça login novamente.";
+
+                        setTimeout(() => {
+                            localStorage.removeItem("logged_user");
+                            this.$router.push("/");
+                        }, 3000);
+                    } else {
+                        this.snackbarError = true;
+                        this.snackbarMessage = "Erro ao carregar informações do dashboard!";
+                    }
                 });
         },
 
@@ -177,18 +185,8 @@ export default {
                             this.$router.push('/categories');
                         })
                         .catch((error) => {
-                            if (error.response) {
-                                const status = error.response.status;
-                                const responseData = error.response.data;
-
-                                if (status === 401 || status === 422) {
-                                    this.signUpError = true;
-                                } else if (status === 500) {
-                                    this.signUpError = true;
-                                }
-                            } else {
-                                this.signUpError = true;
-                            }
+                            this.snackbarError = true;
+                            this.snackbarMessage = "Erro ao editar categoria";
                         })
                         .finally(() => {
                             this.isLoading = false;
@@ -214,18 +212,8 @@ export default {
                             }, 3000);
                         })
                         .catch((error) => {
-                            if (error.response) {
-                                const status = error.response.status;
-                                const responseData = error.response.data;
-
-                                if (status === 401 || status === 422) {
-                                    this.signUpError = true;
-                                } else if (status === 500) {
-                                    this.signUpError = true;
-                                }
-                            } else {
-                                this.signUpError = true;
-                            }
+                            this.snackbarError = true;
+                            this.snackbarMessage = "Erro ao cadastrar categoria";
                         })
                         .finally(() => {
                             this.isLoading = false;
@@ -236,7 +224,8 @@ export default {
                 if (error instanceof yup.ValidationError) {
                     this.errors = captureErrorYup(error);
                 } else {
-                    this.signUpError = true;
+                    this.snackbarError = true;
+                    this.snackbarMessage = "Erro na manipulação da categoria";
                 }
             }
         },
@@ -263,7 +252,8 @@ export default {
                     );
                 })
                 .catch((error) => {
-                    this.signUpError = true;
+                    this.snackbarError = true;
+                    this.snackbarMessage = "Erro ao excluir categoria";
                 })
                 .finally(() => {
                     this.isLoading = false;
