@@ -14,6 +14,8 @@
             />
 
             <p class="text-lg md:text-xl text-gray-600 mb-5">Crie sua conta!</p>
+
+            <Loader :show="isLoading" />
             <form
                 @submit.prevent="handleCreateAccount"
                 class="flex flex-col gap-4 w-4/5 md:w-2/3"
@@ -93,7 +95,7 @@
 
             <div
                 v-if="snackbar.show"
-                class="fixed top-5 left-1/2 transform -translate-x-1/2 px-4 py-3 rounded shadow-lg text-white"
+                class="fixed top-5 right-1/2 transform -translate-x-1/2 px-4 py-3 rounded shadow-lg text-white"
                 :class="
                     snackbar.type === 'success' ? 'bg-green-500' : 'bg-red-500'
                 "
@@ -109,8 +111,12 @@ import * as yup from "yup";
 import { captureErrorYup } from "../utils/captureErrorYup";
 import axios from "axios";
 import { API_URL } from "../utils/constants";
+import Loader from "@/components/Loader.vue";
 
 export default {
+    components: {
+        Loader,
+    },
     data() {
         return {
             name: "",
@@ -123,6 +129,7 @@ export default {
                 type: "",
             },
             errors: {},
+            isLoading: false,
         };
     },
     methods: {
@@ -169,6 +176,8 @@ export default {
                     { abortEarly: false }
                 );
                 this.errors = {};
+                this.isLoading = true;
+                document.body.style.overflow = "hidden";
 
                 axios
                     .post(`${API_URL}/users`, {
@@ -194,6 +203,10 @@ export default {
                                 "Erro ao cadastrar, tente novamente."),
                             "error"
                         );
+                    })
+                    .finally(() => {
+                        this.isLoading = false;
+                        document.body.style.overflow = "";
                     });
             } catch (error) {
                 if (error instanceof yup.ValidationError) {
@@ -217,12 +230,14 @@ export default {
     flex-direction: row;
     height: 100%;
 }
+
 .background {
     width: 100%;
     height: 100%;
     object-fit: cover;
     opacity: 0.4;
 }
+
 section.left {
     flex: 70%;
     height: 100%;
@@ -243,6 +258,7 @@ section.right {
     0% {
         flex: 30%;
     }
+
     100% {
         flex: 60%;
     }
@@ -252,15 +268,18 @@ section.right {
     0% {
         flex: 70%;
     }
+
     100% {
         flex: 40%;
     }
 }
+
 a {
     color: #292929;
     font-weight: bold;
     text-decoration: none;
 }
+
 a:hover {
     color: #ffc107;
 }
