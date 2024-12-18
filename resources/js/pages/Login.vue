@@ -23,6 +23,7 @@
             />
             <p class="text-lg text-gray-500 mb-5">Acesse sua conta</p>
 
+            <Loader :show="isLoading" />
             <form
                 @submit.prevent="handleLogin"
                 class="flex flex-col w-3/4 gap-4"
@@ -92,8 +93,12 @@ import { captureErrorYup } from "../utils/captureErrorYup";
 import axios from "axios";
 import TypeIt from "typeit";
 import { API_URL } from "../utils/constants";
+import Loader from "@/components/Loader.vue";
 
 export default {
+    components: {
+        Loader,
+    },
     data() {
         return {
             email: "",
@@ -101,6 +106,7 @@ export default {
             errors: {},
             loginError: false,
             errorMessage: "",
+            isLoading: false,
         };
     },
     methods: {
@@ -133,6 +139,8 @@ export default {
                 );
 
                 this.errors = {};
+                this.isLoading = true;
+                document.body.style.overflow = "hidden";
 
                 axios
                     .post(`${API_URL}/login`, {
@@ -155,17 +163,33 @@ export default {
                                 this.errorMessage =
                                     responseData.message ||
                                     "Email ou senha incorretos.";
+
                                 this.loginError = true;
+                                setTimeout(() => {
+                                    this.loginError = false;
+                                }, 3000);
                             } else if (status === 500) {
                                 this.errorMessage =
                                     "Erro interno. Tente novamente mais tarde.";
+
                                 this.loginError = true;
+                                setTimeout(() => {
+                                    this.loginError = false;
+                                }, 3000);
                             }
                         } else {
                             this.errorMessage =
                                 "Ocorreu um erro. Tente novamente mais tarde.";
+
                             this.loginError = true;
+                            setTimeout(() => {
+                                this.loginError = false;
+                            }, 3000);
                         }
+                    })
+                    .finally(() => {
+                        this.isLoading = false;
+                        document.body.style.overflow = "";
                     });
             } catch (error) {
                 if (error instanceof yup.ValidationError) {
