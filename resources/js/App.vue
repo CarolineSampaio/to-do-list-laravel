@@ -15,7 +15,7 @@ export default {
     computed: {
         renderMenu() {
             return (
-                this.$route.path !== "/" && this.$route.path !== "/signup"
+                this.$route.path !== "/" && this.$route.path !== "/register"
             );
         },
     },
