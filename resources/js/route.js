@@ -15,6 +15,16 @@ const router = createRouter({
             path: "/home",
             component: () => import("./pages/Home.vue"),
         },
+        {
+            path: "/categories",
+            name: 'New Category',
+            component: () => import("./pages/Categories.vue"),
+        },
+        {
+            path: "/category/:id/edit",
+            name: 'Edit Category',
+            component: () => import("./pages/Categories.vue"),
+        },
     ],
 });
 
