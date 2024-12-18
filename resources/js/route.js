@@ -25,6 +25,16 @@ const router = createRouter({
             name: 'Edit Category',
             component: () => import("./pages/Categories.vue"),
         },
+        {
+            path: "/tasks",
+            name: 'New Task',
+            component: () => import("./pages/Tasks.vue"),
+        },
+        {
+            path: "/task/:id/edit",
+            name: 'Edit Task',
+            component: () => import("./pages/Tasks.vue"),
+        },
     ],
 });
 
