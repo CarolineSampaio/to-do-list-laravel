@@ -4,20 +4,18 @@
             <h1 class="text-gray-700 text-2xl md:text-4xl font-medium">
                 Tarefas
             </h1>
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-amber-400 ml-4" fill="none"
-                viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
+            <i class="fa-solid fa-list-check text-amber-400 text-4xl mx-4"></i>
         </div>
 
         <div class="bg-white shadow-lg rounded-lg p-4 mx-auto">
-            <p class="text-gray-700 text-lg font-medium mb-2">{{ taskId ? 'Edição de Tarefas' : 'Cadastro de Tarefas' }}</p>
+            <p class="text-gray-700 text-lg font-medium mb-2">{{ taskId ? 'Edição de Tarefas' : 'Cadastro de Tarefas' }}
+            </p>
             <form @submit.prevent="addTask" class="flex flex-col sm:flex-row gap-4">
-                <input v-model="newTask.title" type="text" placeholder="Digite o título da tarefa"
+                <input v-model="title" type="text" placeholder="Digite o título da tarefa"
                     class="border px-4 py-2 rounded-lg w-full" />
-                <input v-model="newTask.description" type="text" placeholder="Descrição da tarefa"
+                <input v-model="description" type="text" placeholder="Descrição da tarefa"
                     class="border px-4 py-2 rounded-lg w-full" />
-                <select v-model="newTask.category_id" class="border px-4 py-2 rounded-lg w-full">
+                <select v-model="category_id" class="border px-4 py-2 rounded-lg w-full">
                     <option value="" selected>Selecione a categoria</option>
                     <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.title }}</option>
                 </select>
@@ -29,21 +27,20 @@
 
             <Loader :show="isLoading" />
 
-            <div class="mt-8 flex gap-4">
-                <input v-model="searchQuery" type="text" placeholder="Buscar tarefa..."
-                    class="border px-4 py-2 rounded-lg w-full sm:w-1/3" />
-                <select v-model="filterCategory" class="border px-4 py-2 rounded-lg w-full sm:w-1/3">
-                    <option value="">Filtrar por Categoria</option>
+            <p class="mt-10 mx-32 flex justify-end text-sm font-bold">Filtros de Pesquisa</p>
+            <div class="mt-2 flex justify-end gap-2">
+                <select v-model="filterCategory" class="border px-2 py-1 rounded-lg text-sm w-48">
+                    <option value="">Categoria</option>
                     <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.title }}</option>
                 </select>
-                <select v-model="filterCompleted" class="border px-4 py-2 rounded-lg w-full sm:w-1/3">
-                    <option value="">Filtrar por Concluída</option>
+                <select v-model="filterCompleted" class="border px-2 py-1 rounded-lg text-sm w-48">
+                    <option value="">Status</option>
                     <option value="true">Concluídas</option>
                     <option value="false">Não Concluídas</option>
                 </select>
             </div>
 
-            <div class="mt-8 relative">
+            <div class="mt-4 relative">
                 <table class="min-w-full table-auto">
                     <thead>
                         <tr>
@@ -53,20 +50,23 @@
                     </thead>
                     <tbody>
                         <tr v-for="task in filteredTasks" :key="task.id" class="min-h-20">
-                            <td class="py-2 px-4  md:w-4/5" style="color: #292929">
-                                <input type="checkbox" :checked="task.completed" @change="toggleComplete(task)" />
-                                <span class="pl-3 flex-1">{{ task.title }}</span>
-                                <p class="text-xs text-gray-500 px-6" style="text-align: justify;">{{ task.description
+                            <td class="py-2 px-4  custom-md w-2/5" style="color: #292929">
+                                <input class="h-4 w-4" type="checkbox" :checked="task.is_completed"
+                                    @change="toggleComplete(task)">
+                                <span class="pl-3 flex-1"
+                                    :class="{ 'line-through text-gray-400': task.is_completed }">{{ task.title }}</span>
+                                <p class="text-xs px-6" style="text-align: justify;"
+                                    :class="task.is_completed ? 'text-gray-300' : 'text-gray-500'">{{ task.description
                                     }}</p>
                             </td>
-                            <td class="py-2 px-4 flex justify-center space-x-4">
+                            <td class="table-cell text-center space-x-4 py-2 px-4">
                                 <button @click="editTask(task)" :disabled="isLoading"
-                                    class="bg-amber-400 text-gray-800 font-bold py-2 px-8 rounded-lg">
-                                    Editar
+                                    class="bg-amber-400 text-gray-800 font-bold py-2 px-4 rounded-lg">
+                                    <i class="fa-solid fa-file-pen"></i>
                                 </button>
                                 <button @click="deleteTask(task.id)" :disabled="isLoading"
-                                    class="bg-gray-800 text-amber-400 font-bold py-2 px-8 rounded-lg">
-                                    Excluir
+                                    class="bg-gray-800 text-amber-400 font-bold py-2 px-4 rounded-lg">
+                                    <i class="fa-solid fa-trash"></i>
                                 </button>
                             </td>
                         </tr>
@@ -77,7 +77,7 @@
 
         <div>
             <div v-if="snackbarSuccess" class="bg-green-500 text-white py-2 px-4 rounded mt-4 fixed right-60 top-32">
-                {{ taskId ? 'Tarefa editada com sucesso!' : 'Tarefa cadastrada com sucesso!' }}
+                {{ snackbarMessage }}
             </div>
             <div v-if="snackbarError" class="mt-4 bg-red-600 text-white p-4 rounded-lg top-20 right-4 fixed">
                 {{ snackbarMessage }}
@@ -99,14 +99,12 @@ export default {
     },
     data() {
         return {
-            newTask: {
-                title: "",
-                description: "",
-                category_id: "",
-            },
+            title: "",
+            description: "",
+            category_id: "",
+
             tasks: [],
             categories: [],
-            searchQuery: "",
             filterCategory: "",
             filterCompleted: "",
             errors: {},
@@ -117,6 +115,7 @@ export default {
             taskId: this.$route?.params?.id,
         };
     },
+
     methods: {
         cleanToken() {
             return localStorage.getItem("logged_user")
@@ -160,6 +159,7 @@ export default {
                     }
                 });
         },
+
         getTasks() {
             axios
                 .get(`${API_URL}/tasks`, {
@@ -168,7 +168,7 @@ export default {
                     },
                 })
                 .then((response) => {
-                    this.tasks = response.data.data;
+                    this.tasks = response.data.data.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
                 })
                 .catch((error) => {
                     if (error.response.status === 401) {
@@ -192,12 +192,21 @@ export default {
                     .string()
                     .required("Por favor, digite o título da tarefa.")
                     .max(150),
-                description: yup.string(),
-                category_id: yup.string(),
+                description: yup.string().nullable(),
+                category_id: yup.string().nullable(),
             });
 
             try {
-                schema.validateSync(this.newTask, { abortEarly: false });
+                schema.validateSync(
+                    {
+                        title: this.title,
+                        description: this.description,
+                        category_id: this.category_id
+                    },
+                    { abortEarly: false }
+                );
+                console.log(this.title, this.description, this.category_id);
+
                 this.errors = {};
                 this.isLoading = true;
                 document.body.style.overflow = "hidden";
@@ -206,7 +215,11 @@ export default {
                     axios
                         .put(
                             `${API_URL}/tasks/${this.taskId}`,
-                            this.newTask,
+                            {
+                                title: this.title,
+                                description: this.description || null,
+                                category_id: this.category_id || null,
+                            },
                             {
                                 headers: {
                                     Authorization: `Bearer ${this.cleanToken()}`,
@@ -218,11 +231,20 @@ export default {
                                 (task) => task.id === this.taskId
                             );
                             this.tasks[taskIndex] = response.data.data;
-                            this.clearForm();
+
+                            this.title = "";
+                            this.description = "";
+                            this.category_id = "";
+
                             this.snackbarSuccess = true;
+                            this.snackbarMessage = "Tarefa editada com sucesso!";
+
                             setTimeout(() => {
                                 this.snackbarSuccess = false;
                             }, 3000);
+
+                            this.taskId = null;
+                            this.$router.push("/tasks");
                         })
                         .catch((error) => {
                             this.snackbarError = true;
@@ -236,7 +258,11 @@ export default {
                     axios
                         .post(
                             `${API_URL}/tasks`,
-                            this.newTask,
+                            {
+                                title: this.title,
+                                description: this.description || null,
+                                category_id: this.category_id || null,
+                            },
                             {
                                 headers: {
                                     Authorization: `Bearer ${this.cleanToken()}`,
@@ -245,8 +271,12 @@ export default {
                         )
                         .then((response) => {
                             this.tasks.push(response.data.data);
-                            this.clearForm();
+
                             this.snackbarSuccess = true;
+                            this.snackbarMessage = "Tarefa cadastrada com sucesso!";
+                            this.title = "";
+                            this.description = "";
+                            this.category_id = "";
                             setTimeout(() => {
                                 this.snackbarSuccess = false;
                             }, 3000);
@@ -267,7 +297,9 @@ export default {
 
         editTask(task) {
             this.$router.push(`/task/${task.id}/edit`);
-            this.newTask = { ...task };
+            this.title = task.title;
+            this.description = task.description;
+            this.category_id = task.category_id;
             this.taskId = task.id;
         },
 
@@ -284,6 +316,7 @@ export default {
                 .then(() => {
                     this.tasks = this.tasks.filter((task) => task.id !== taskId);
                     this.snackbarSuccess = true;
+                    this.snackbarMessage = "Tarefa excluída com sucesso!";
                     setTimeout(() => {
                         this.snackbarSuccess = false;
                     }, 3000);
@@ -302,7 +335,7 @@ export default {
             axios
                 .patch(
                     `${API_URL}/tasks/${task.id}/complete`,
-                    { completed: !task.completed },
+                    { is_completed: !task.is_completed },
                     {
                         headers: {
                             Authorization: `Bearer ${this.cleanToken()}`,
@@ -310,22 +343,14 @@ export default {
                     }
                 )
                 .then((response) => {
-                    task.completed = response.data.data.completed;
+                    task.is_completed = response.data.data.is_completed;
+                    task.completed_at = response.data.data.completed_at;
+                    this.tasks.sort((a, b) => new Date(b.completed_at) - new Date(a.completed_at));
                 })
                 .catch((error) => {
                     this.snackbarError = true;
                     this.snackbarMessage = "Erro ao alterar status da tarefa!";
                 });
-        },
-
-        clearForm() {
-            this.newTask = {
-                title: "",
-                description: "",
-                category_id: "",
-            };
-
-            this.taskId = null;
         },
     },
 
@@ -336,18 +361,15 @@ export default {
                     !this.filterCategory || task.category_id === this.filterCategory;
                 let matchesCompletion =
                     this.filterCompleted === "" ||
-                    (this.filterCompleted === "true" ? task.completed : !task.completed);
-                let matchesSearch =
-                    task.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-                    task.description.toLowerCase().includes(this.searchQuery.toLowerCase());
-                return matchesCategory && matchesCompletion && matchesSearch;
+                    (this.filterCompleted === "true" ? task.is_completed : !task.is_completed);
+                return matchesCategory && matchesCompletion;
             });
 
             filteredTasks.sort((a, b) => {
-                if (a.completed === b.completed) {
-                    return b.updated_at.localeCompare(a.updated_at);
+                if (a.is_completed === b.is_completed) {
+                    return new Date(b.completed_at) - new Date(a.completed_at);
                 }
-                return a.completed ? 1 : -1;
+                return a.is_completed ? 1 : -1;
             });
 
             return filteredTasks;
@@ -378,5 +400,23 @@ table td {
     border-bottom: 1px solid #e2e8f0;
     font-weight: 500;
     color: #292929;
+}
+
+@media (min-width: 800px) {
+    .custom-md {
+        width: 50%;
+    }
+}
+
+@media (min-width: 900px) {
+    .custom-md {
+        width: 60%;
+    }
+}
+
+@media (min-width: 1200px) {
+    .custom-md {
+        width: 80%;
+    }
 }
 </style>
