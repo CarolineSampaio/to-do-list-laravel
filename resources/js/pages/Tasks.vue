@@ -44,11 +44,16 @@
                 <table class="min-w-full table-auto">
                     <thead>
                         <tr>
-                            <th class="text-center font-bold py-2 px-4" style="color: #292929">Lista de Tarefas</th>
-                            <th class="text-center font-bold py-2 px-4" style="color: #292929">Ações</th>
+                            <th class="text-center font-bold py-2 px-4" style="color: #292929" v-if="!noTasks" >Lista de Tarefas</th>
+                            <th class="text-center font-bold py-2 px-4" style="color: #292929" v-if="!noTasks">Ações</th>
                         </tr>
                     </thead>
                     <tbody>
+                        <tr v-if="noTasks">
+                            <td colspan="2" class="text-center py-10 border-t">
+                                Não há tarefas cadastradas.
+                            </td>
+                        </tr>
                         <tr v-for="task in filteredTasks" :key="task.id" class="min-h-20">
                             <td class="py-2 px-4  custom-md w-2/5" style="color: #292929">
                                 <input class="h-4 w-4" type="checkbox" :checked="task.is_completed"
@@ -113,6 +118,7 @@ export default {
             loadError: false,
             isLoading: false,
             taskId: this.$route?.params?.id,
+            noTasks:false
         };
     },
 
@@ -169,6 +175,7 @@ export default {
                 })
                 .then((response) => {
                     this.tasks = response.data.data.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+                    if(this.tasks.length === 0) this.noTasks = true;
                 })
                 .catch((error) => {
                     if (error.response.status === 401) {

@@ -31,15 +31,20 @@
                 <table class="min-w-full table-auto">
                     <thead>
                         <tr>
-                            <th class="text-center font-bold py-2 px-4" style="color: #292929">
+                            <th class="text-center font-bold py-2 px-4" style="color: #292929" v-if="!noCategories">
                                 Lista de Categorias
                             </th>
-                            <th class="text-center font-bold py-2 px-4" style="color: #292929">
+                            <th class="text-center font-bold py-2 px-4" style="color: #292929" v-if="!noCategories">
                                 Ações
                             </th>
                         </tr>
                     </thead>
                     <tbody>
+                        <tr v-if="noCategories">
+                            <td colspan="2" class="text-center py-10 border-t">
+                                Não há categorias cadastradas.
+                            </td>
+                        </tr>
                         <tr v-for="category in categories" :key="category.id">
                             <td class="py-2 px-4  custom-md w-2/5" style="color: #292929">
                                 {{ category.title }}
@@ -92,7 +97,8 @@ export default {
             snackbarError: false,
             loadError: false,
             isLoading: false,
-            categoryId: this.$route?.params?.id
+            categoryId: this.$route?.params?.id,
+            noCategories: false
         };
     },
     methods: {
@@ -122,6 +128,7 @@ export default {
                 })
                 .then((response) => {
                     this.categories = response.data.data.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+                    if(this.categories.length === 0) this.noCategories = true;
                 })
 
                 .catch((error) => {
