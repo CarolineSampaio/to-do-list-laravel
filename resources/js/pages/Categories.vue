@@ -4,13 +4,12 @@
             <h1 class="text-gray-700 text-2xl md:text-4xl font-medium">
                 Categorias
             </h1>
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-amber-400 ml-4" fill="none"
-                viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
+            <i class="fa-solid fa-layer-group text-amber-400 text-4xl mx-4"></i>
         </div>
 
         <div class="bg-white shadow-lg rounded-lg p-4 mx-auto">
+            <p class="text-gray-700 text-lg font-medium mb-2">
+                {{ categoryId ? 'Edição de Categorias' : 'Cadastro de Categorias' }} </p>
             <form @submit.prevent="addCategory" class="flex flex-col sm:flex-row gap-4">
                 <input v-model="title" type="text" placeholder="Digite o nome da categoria" :class="{
                     'border-red-500': errors.title,
@@ -33,7 +32,7 @@
                     <thead>
                         <tr>
                             <th class="text-center font-bold py-2 px-4" style="color: #292929">
-                                Categoria
+                                Lista de Categorias
                             </th>
                             <th class="text-center font-bold py-2 px-4" style="color: #292929">
                                 Ações
@@ -42,17 +41,17 @@
                     </thead>
                     <tbody>
                         <tr v-for="category in categories" :key="category.id">
-                            <td class="py-2 px-4  md:w-4/5" style="color: #292929">
+                            <td class="py-2 px-4  custom-md w-2/5" style="color: #292929">
                                 {{ category.title }}
                             </td>
-                            <td class="py-2 px-4 py-2 px-4 flex justify-center space-x-4">
+                            <td class="table-cell text-center space-x-4 py-2 px-4">
                                 <button @click="editCategory(category)" :disabled="isLoading"
-                                    class="bg-amber-400 text-gray-800 font-bold py-2 px-8 rounded-lg md:w-3/5 mt-4 sm:mt-0">
-                                    Editar
+                                    class="bg-amber-400 text-gray-800 font-bold py-2 px-4 rounded-lg">
+                                    <i class="fa-solid fa-file-pen"></i>
                                 </button>
                                 <button @click="deleteCategory(category.id)" :disabled="isLoading"
-                                    class="bg-gray-800 text-amber-400 font-bold py-2 px-8 rounded-lg md:w-3/5 mt-4 sm:mt-0">
-                                    Excluir
+                                    class="bg-gray-800 text-amber-400 font-bold py-2 px-4 rounded-lg">
+                                    <i class="fa-solid fa-trash"></i>
                                 </button>
                             </td>
                         </tr>
@@ -63,7 +62,7 @@
             <div>
                 <div v-if="snackbarSuccess"
                     class="bg-green-500 text-white py-2 px-4 rounded mt-4 fixed right-60 top-32">
-                    {{ categoryId ? 'Categoria editada com sucesso!' : 'Categoria cadastrada com sucesso!' }}
+                    {{ snackbarMessage }}
                 </div>
                 <div v-if="snackbarError" class="mt-4 bg-red-600 text-white p-4 rounded-lg top-20 right-4 fixed">
                     {{ snackbarMessage }}
@@ -122,8 +121,9 @@ export default {
                     },
                 })
                 .then((response) => {
-                    this.categories = response.data.data;
+                    this.categories = response.data.data.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
                 })
+
                 .catch((error) => {
                     if (error.response.status === 401) {
                         this.snackbarError = true;
@@ -178,10 +178,13 @@ export default {
                             this.categoryId = "";
 
                             this.snackbarSuccess = true;
+                            this.snackbarMessage = "Categoria editada com sucesso!";
+
                             setTimeout(() => {
                                 this.snackbarSuccess = false;
                             }, 3000);
 
+                            this.categoryId = null;
                             this.$router.push('/categories');
                         })
                         .catch((error) => {
@@ -204,9 +207,12 @@ export default {
                             }
                         )
                         .then((response) => {
-                            this.categories.push(response.data.data);
+                            this.categories.unshift(response.data.data);
+
                             this.title = "";
                             this.snackbarSuccess = true;
+                            this.snackbarMessage = "Categoria cadastrada com sucesso!";
+
                             setTimeout(() => {
                                 this.snackbarSuccess = false;
                             }, 3000);
@@ -247,6 +253,8 @@ export default {
                     },
                 })
                 .then(() => {
+                    this.snackbarSuccess = true;
+                    this.snackbarMessage = "Categoria removida com sucesso!";
                     this.categories = this.categories.filter(
                         (category) => category.id !== categoryId
                     );
@@ -284,5 +292,23 @@ table td {
     border-bottom: 1px solid #e2e8f0;
     font-weight: 500;
     color: #292929;
+}
+
+@media (min-width: 800px) {
+    .custom-md {
+        width: 50%;
+    }
+}
+
+@media (min-width: 900px) {
+    .custom-md {
+        width: 60%;
+    }
+}
+
+@media (min-width: 1200px) {
+    .custom-md {
+        width: 80%;
+    }
 }
 </style>
