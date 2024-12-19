@@ -44,8 +44,10 @@
                 <table class="min-w-full table-auto">
                     <thead>
                         <tr>
-                            <th class="text-center font-bold py-2 px-4" style="color: #292929" v-if="!noTasks" >Lista de Tarefas</th>
-                            <th class="text-center font-bold py-2 px-4" style="color: #292929" v-if="!noTasks">Ações</th>
+                            <th class="text-center font-bold py-2 px-4" style="color: #292929" v-if="!noTasks">Lista de
+                                Tarefas</th>
+                            <th class="text-center font-bold py-2 px-4" style="color: #292929" v-if="!noTasks">Ações
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
@@ -63,6 +65,10 @@
                                 <p class="text-xs px-6" style="text-align: justify;"
                                     :class="task.is_completed ? 'text-gray-300' : 'text-gray-500'">{{ task.description
                                     }}</p>
+                                <p v-if="task.is_completed && task.completed_by"
+                                    class="text-xs px-6 text-gray-400 italic mt-2">
+                                    Finalizado por: {{ task.completed_by.name }}
+                                </p>
                             </td>
                             <td class="table-cell text-center space-x-4 py-2 px-4">
                                 <button @click="editTask(task)" :disabled="isLoading"
@@ -118,7 +124,7 @@ export default {
             loadError: false,
             isLoading: false,
             taskId: this.$route?.params?.id,
-            noTasks:false
+            noTasks: false
         };
     },
 
@@ -175,7 +181,7 @@ export default {
                 })
                 .then((response) => {
                     this.tasks = response.data.data.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
-                    if(this.tasks.length === 0) this.noTasks = true;
+                    if (this.tasks.length === 0) this.noTasks = true;
                 })
                 .catch((error) => {
                     if (error.response.status === 401) {
@@ -212,8 +218,6 @@ export default {
                     },
                     { abortEarly: false }
                 );
-                console.log(this.title, this.description, this.category_id);
-
                 this.errors = {};
                 this.isLoading = true;
                 document.body.style.overflow = "hidden";
@@ -352,6 +356,7 @@ export default {
                 .then((response) => {
                     task.is_completed = response.data.data.is_completed;
                     task.completed_at = response.data.data.completed_at;
+                    task.completed_by = response.data.data.completed_by;
                     this.tasks.sort((a, b) => new Date(b.completed_at) - new Date(a.completed_at));
                 })
                 .catch((error) => {

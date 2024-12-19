@@ -25,7 +25,7 @@ class TaskRepository implements TaskRepositoryInterface
     {
         $tasks = Task::whereHas('users', function ($query) use ($userId) {
             $query->where('user_id', $userId);
-        });
+        })->with('completedBy:id,name');
 
         if (isset($filters['category'])) {
             $tasks->where('category_id', $filters['category']);
