@@ -52,6 +52,8 @@ class TaskService
 
         $isCompleted = !$task->is_completed;
         $this->taskRepository->updateTaskCompletionStatus($task, $isCompleted, $userId);
+
+        $task->load('completedBy');
         return $task;
     }
 }

@@ -51,6 +51,6 @@ class ModelRelationshipsTest extends TestCase
         $task = Task::factory()->create(['completed_by' => $user->id]);
 
         $this->assertEquals($user->id, $task->completed_by);
-        $this->assertInstanceOf(User::class, $task->user);
+        $this->assertInstanceOf(User::class, $task->completedBy);
     }
 }

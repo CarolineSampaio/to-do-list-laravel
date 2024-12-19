@@ -10,6 +10,7 @@ services:
       - 8000:8000
     volumes:
       - .:/var/www:cached
+      - /var/www/node_modules
     command: ["sh", "-c", "composer setup && composer serve"]
 
   db:

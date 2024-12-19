@@ -156,7 +156,7 @@ class AuthUserTest extends TestCase
     public function testUserCanLogin()
     {
         $response = $this->postJson('/api/login', [
-            'email' => 'test@example.com',
+            'email' => 'teste@example.com',
             'password' => 'Password123@',
         ]);
 

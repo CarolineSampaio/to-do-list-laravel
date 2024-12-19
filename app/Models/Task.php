@@ -25,9 +25,10 @@ class Task extends Model
         return $this->belongsTo(Category::class);
     }
 
-    public function user()
+    public function completedBy()
     {
-        return $this->belongsTo(User::class, 'completed_by');
+        return $this->belongsTo(User::class, 'completed_by')
+            ->select(['id', 'name']);
     }
 
     public function users(): BelongsToMany

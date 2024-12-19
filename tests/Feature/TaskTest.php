@@ -536,7 +536,10 @@ class TaskTest extends TestCase
                 'data' => [
                     'id' => $task->id,
                     'is_completed' => true,
-                    'completed_by' => $user->id,
+                    'completed_by' => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                    ],
                     'completed_at' => $response->json('data.completed_at')
                 ]
             ]);
